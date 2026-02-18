@@ -3,22 +3,29 @@ import { SCENES, COLORS } from "../utils/constants";
 
 export class GameOverScene extends Phaser.Scene {
   private won: boolean = false;
+  private fromBoss: boolean = false;
 
   constructor() {
     super(SCENES.GAME_OVER);
   }
 
-  init(data: { won: boolean }) {
+  init(data: { won: boolean; fromBoss?: boolean }) {
     this.won = data.won ?? false;
+    this.fromBoss = data.fromBoss ?? false;
   }
 
   create() {
     const centerX = this.scale.width / 2;
     const centerY = this.scale.height / 2;
 
-    const message = this.won
-      ? 'Well, I must say, that performance was a-MAIZE-ing.\nI can honestly say I have never seen anyone\ncomplete this game. Ever.\nMay I a-corn-pany you on a replay?'
-      : "Well, that's a shame. You tried, but failed.\nThese things happen in life, kid.\nKeep your chin up, turn that CORN-er,\nand try again.";
+    let message: string;
+    if (this.fromBoss && this.won) {
+      message = "BIG KEITH HAS BEEN DEFEATED.\nGerald is devastated. Dave is confused.\nThe National Farmers Union has been notified.\nYou are free. For now.";
+    } else if (this.won) {
+      message = 'Well, I must say, that performance was a-MAIZE-ing.\nI can honestly say I have never seen anyone\ncomplete this game. Ever.\nMay I a-corn-pany you on a replay?';
+    } else {
+      message = "Well, that's a shame. You tried, but failed.\nThese things happen in life, kid.\nKeep your chin up, turn that CORN-er,\nand try again.";
+    }
 
     this.add.text(centerX, centerY - 60, message, {
       fontFamily: '"Josefin Sans", Tahoma',
@@ -49,20 +56,17 @@ export class GameOverScene extends Phaser.Scene {
     );
 
     replayText.setInteractive({ useHandCursor: true });
-    replayText.on("pointerdown", () => {
-      // Reset corn counter in DOM
-      const cornDisplay = document.querySelector(".corn-counter") as HTMLInputElement;
-      if (cornDisplay) cornDisplay.value = "";
-      this.scene.start(SCENES.GAME, { levelIndex: 0, totalCorn: 0 });
-    });
+    replayText.on("pointerdown", () => this.goToMenu());
 
-    // Also allow Enter key to replay
+
     if (this.input.keyboard) {
-      this.input.keyboard.once("keydown-ENTER", () => {
-        const cornDisplay = document.querySelector(".corn-counter") as HTMLInputElement;
-        if (cornDisplay) cornDisplay.value = "";
-        this.scene.start(SCENES.GAME, { levelIndex: 0, totalCorn: 0 });
-      });
+      this.input.keyboard.once("keydown-ENTER", () => this.goToMenu());
     }
+  }
+
+  private goToMenu() {
+    const cornDisplay = document.querySelector(".corn-counter") as HTMLInputElement;
+    if (cornDisplay) cornDisplay.value = "0 :";
+    this.scene.start(SCENES.MENU);
   }
 }

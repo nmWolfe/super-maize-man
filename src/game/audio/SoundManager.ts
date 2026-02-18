@@ -121,6 +121,29 @@ export class SoundManager {
     this.playNote(660, now + 0.12, 0.1, "square", 0.18);
   }
 
+  // --- Boss sounds ---
+  bossHit() {
+    // Satisfying descending thud — 200→80Hz over 300ms
+    this.playTone(200, 0.3, "sawtooth", 0.4, 80);
+  }
+
+  bossCharge() {
+    // Rising siren — 300→900Hz over 1s (warns player to dodge)
+    this.playTone(300, 1.0, "sawtooth", 0.25, 900);
+  }
+
+  bossDefeat() {
+    // Triumphant ascending arpeggio: C D E G A
+    const ctx = this.getContext();
+    const now = ctx.currentTime;
+    const notes = [261, 294, 330, 392, 440]; // C4 D4 E4 G4 A4
+    notes.forEach((freq, i) => {
+      this.playNote(freq, now + i * 0.2, 0.25, "sine", 0.3);
+    });
+    // Final high flourish
+    this.playNote(523, now + 1.1, 0.4, "sine", 0.35); // C5
+  }
+
   // Spooky heartbeat played when an enemy is close.
   // Two low thumps in quick succession — a classic horror "lub-dub".
   enemyNearby() {

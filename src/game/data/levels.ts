@@ -39,15 +39,6 @@ export const levels: LevelData[] = [
     timeLimit: 10,
     playerStart: [0, 0],
     cornToAdvance: 3,
-    vignette: {
-      title: "The Fields Await",
-      lines: [
-        "Gerald sharpens his pitchfork.",
-        '"That corn won\'t harvest itself," he mutters darkly.',
-        "He has a point. You are the corn.",
-        "Run.",
-      ],
-    },
   },
   {
     name: "Level 2",
@@ -63,40 +54,31 @@ export const levels: LevelData[] = [
     timeLimit: 15,
     playerStart: [0, 0],
     cornToAdvance: 13,
-    vignette: {
-      title: "Word Spreads",
-      lines: [
-        "News reaches the fields.",
-        "Gerald has called his brother, Dave.",
-        "Dave has a rake.",
-        "Dave is not to be underestimated.",
-      ],
-    },
   },
   {
     name: "Level 3",
     grid: [
-      // 7x7 grid — one speed, one confusion
-      [_, _, _, _, W, _, C],
-      [W, W, W, _, W, _, W],
-      [_, C, W, _, _, S, _],  // S = speed power-up
-      [_, W, _, _, W, W, C],
-      [_, _, _, _, _, W, W],
-      [_, W, W, W, _, W, C],
-      [_, _, C, W, _, _, X],  // X = confusion power-up
+      // 7x7 — two safe flanking routes at col 0 and col 6
+      // Gerald patrols row 4 cols 1–5 only; left/right flanks are always safe
+      [_, _, _, _, _, _, C],  // open top row, corn at far right
+      [W, W, W, W, W, W, _],  // solid wall — only gap at col 6 (right flank down)
+      [_, _, C, _, _, _, _],  // open corridor; corn at col 2
+      [_, W, W, W, W, W, _],  // wall with gaps at col 0 and col 6
+      [_, _, _, C, _, _, _],  // Gerald patrols cols 1–5; centre corn is risky
+      [_, W, W, W, W, W, _],  // wall with gaps at col 0 and col 6
+      [S, _, _, _, _, _, X],  // speed power-up left, confusion right
     ],
     timeLimit: 20,
     playerStart: [0, 0],
     cornToAdvance: 18,
     enemies: [
       {
-        // Gerald patrols row 4, cols 0–4
-        start: [4, 4],
-        patrol: [[4, 0], [4, 1], [4, 2], [4, 3], [4, 4]],
+        // Gerald patrols row 4, cols 1–5 — col 0 and col 6 are always safe
+        start: [4, 1],
+        patrol: [[4, 1], [4, 2], [4, 3], [4, 4], [4, 5]],
         speed: 550,
       },
     ],
-    fogOfWar: { enabled: true, revealRadius: 3 },
     vignette: {
       title: "Heavy Boots",
       lines: [

@@ -122,10 +122,10 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture("enemy", ts, ts);
     g.destroy();
 
-    // Power-up corn textures — glowing neon circles with symbols
+    // Power-up corn textures — corn-cob shapes, tinted per type
     this.makePowerUpTexture(ts, 3, 0x00aaff, "freeze"); // Freeze — ice blue
-    this.makePowerUpTexture(ts, 4, 0xffcc00, "speed");  // Speed  — gold
-    this.makePowerUpTexture(ts, 5, 0xddeeff, "ice");    // Ice    — pale blue
+    this.makePowerUpTexture(ts, 4, 0xff8800, "speed");  // Speed  — orange
+    this.makePowerUpTexture(ts, 5, 0x88ccff, "ice");    // Ice    — pale blue
     this.makePowerUpTexture(ts, 6, 0xaa44ff, "confuse");// Confusion — purple
 
     this.scene.start(SCENES.MENU);
@@ -133,51 +133,79 @@ export class BootScene extends Phaser.Scene {
 
   private makePowerUpTexture(ts: number, tileType: number, color: number, symbol: "freeze" | "speed" | "ice" | "confuse") {
     const key = `powerup-${tileType}`;
-    const cx = ts / 2;
-    const cy = ts / 2;
-    const r = ts * 0.33;
-
     const p = this.add.graphics();
-    // Outer glow
-    p.fillStyle(color, 0.2);
-    p.fillCircle(cx, cy, r + 5);
-    // Main body
-    p.fillStyle(color, 0.85);
-    p.fillCircle(cx, cy, r);
-    // Neon rim
-    p.lineStyle(2, color, 1);
-    p.strokeCircle(cx, cy, r);
 
-    // Symbol drawn in dark contrasting colour
-    p.lineStyle(2, 0x111111, 0.9);
+    // Corn cob geometry
+    const cx = ts * 0.5;
+    const cobCy = ts * 0.40;  // cob center — slightly above mid so husk fits below
+    const cw = ts * 0.22;     // half-width of cob
+    const ch = ts * 0.30;     // half-height of cob
+
+    // --- Glow aura in power-up color ---
+    p.fillStyle(color, 0.22);
+    p.fillEllipse(cx, cobCy, (cw + 7) * 2, (ch + 7) * 2);
+
+    // --- Corn body (golden yellow base) ---
+    p.fillStyle(0xffcc00, 1);
+    p.fillEllipse(cx, cobCy, cw * 2, ch * 2);
+
+    // --- Color tint overlay ---
+    p.fillStyle(color, 0.45);
+    p.fillEllipse(cx, cobCy, cw * 2, ch * 2);
+
+    // --- Neon rim ---
+    p.lineStyle(2, color, 1);
+    p.strokeEllipse(cx, cobCy, cw * 2, ch * 2);
+
+    // --- Kernel rows (3 cols × 5 rows of dots) ---
+    p.fillStyle(0xaa6600, 0.65);
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 3; col++) {
+        const kx = cx - cw * 0.55 + col * cw * 0.55;
+        const ky = cobCy - ch * 0.70 + row * ch * 0.35;
+        p.fillCircle(kx, ky, ts * 0.028);
+      }
+    }
+
+    // --- Husk leaves at base ---
+    p.lineStyle(2.5, 0x44bb44, 1);
+    p.lineBetween(cx - cw * 0.25, cobCy + ch * 0.88, cx - cw * 1.05, cobCy + ch * 1.45);
+    p.lineBetween(cx + cw * 0.25, cobCy + ch * 0.88, cx + cw * 1.05, cobCy + ch * 1.45);
+    p.lineStyle(2, 0x44bb44, 0.6);
+    p.lineBetween(cx, cobCy + ch * 0.95, cx, cobCy + ch * 1.45);
+
+    // --- Symbol overlaid on cob (white, small) ---
+    const sr = ts * 0.11;     // symbol radius
+    const sy = cobCy;         // symbol centred on cob
+    p.lineStyle(1.5, 0xffffff, 0.95);
 
     if (symbol === "freeze") {
-      // Snowflake: 3 crossing lines through centre
-      for (let angle = 0; angle < 180; angle += 60) {
-        const rad = (angle * Math.PI) / 180;
+      // Snowflake — 3 crossing lines at 60° intervals
+      for (let a = 0; a < 3; a++) {
+        const rad = (a * 60 * Math.PI) / 180;
         p.lineBetween(
-          cx + Math.cos(rad) * r * 0.65, cy + Math.sin(rad) * r * 0.65,
-          cx - Math.cos(rad) * r * 0.65, cy - Math.sin(rad) * r * 0.65
+          cx + Math.cos(rad) * sr, sy + Math.sin(rad) * sr,
+          cx - Math.cos(rad) * sr, sy - Math.sin(rad) * sr
         );
       }
     } else if (symbol === "speed") {
-      // Lightning bolt (two diagonal lines)
-      p.lineBetween(cx - 4, cy - r * 0.55, cx + 2, cy + 2);
-      p.lineBetween(cx - 2, cy - 2, cx + 4, cy + r * 0.55);
-      p.lineBetween(cx - 4, cy - r * 0.55, cx + 4, cy + r * 0.55);
+      // Lightning bolt
+      p.lineBetween(cx - sr * 0.3, sy - sr, cx + sr * 0.15, sy + sr * 0.1);
+      p.lineBetween(cx - sr * 0.15, sy - sr * 0.1, cx + sr * 0.3, sy + sr);
     } else if (symbol === "ice") {
-      // Arrow pointing right (slide direction)
-      p.lineBetween(cx - r * 0.5, cy, cx + r * 0.5, cy);
-      p.lineBetween(cx + r * 0.25, cy - r * 0.3, cx + r * 0.5, cy);
-      p.lineBetween(cx + r * 0.25, cy + r * 0.3, cx + r * 0.5, cy);
+      // Double-headed arrow (→ and ←, slide both ways)
+      p.lineBetween(cx - sr * 0.9, sy, cx + sr * 0.9, sy);
+      p.lineBetween(cx + sr * 0.45, sy - sr * 0.45, cx + sr * 0.9, sy);
+      p.lineBetween(cx + sr * 0.45, sy + sr * 0.45, cx + sr * 0.9, sy);
+      p.lineBetween(cx - sr * 0.45, sy - sr * 0.45, cx - sr * 0.9, sy);
+      p.lineBetween(cx - sr * 0.45, sy + sr * 0.45, cx - sr * 0.9, sy);
     } else if (symbol === "confuse") {
-      // Question mark using two segments
-      p.lineBetween(cx - r * 0.2, cy - r * 0.45, cx + r * 0.2, cy - r * 0.45);
-      p.lineBetween(cx + r * 0.2, cy - r * 0.45, cx + r * 0.2, cy);
-      p.lineBetween(cx + r * 0.2, cy, cx, cy + r * 0.15);
-      // dot
-      p.fillStyle(0x111111, 0.9);
-      p.fillCircle(cx, cy + r * 0.42, 2.5);
+      // Question mark — top arc + stem + dot
+      p.lineBetween(cx - sr * 0.45, sy - sr * 0.65, cx + sr * 0.45, sy - sr * 0.65);
+      p.lineBetween(cx + sr * 0.45, sy - sr * 0.65, cx + sr * 0.45, sy - sr * 0.05);
+      p.lineBetween(cx + sr * 0.45, sy - sr * 0.05, cx, sy + sr * 0.25);
+      p.fillStyle(0xffffff, 0.95);
+      p.fillCircle(cx, sy + sr * 0.65, ts * 0.022);
     }
 
     p.generateTexture(key, ts, ts);

@@ -15,6 +15,11 @@ export class Player extends Phaser.GameObjects.Image {
   isSlideLocked: boolean = false;
   speedMultiplier: number = 1; // 0.5 = 2× speed (halves tween duration)
 
+  // Boss fight state
+  lastDRow: number = 0;
+  lastDCol: number = 0;
+  hasFreezeCorn: boolean = false;
+
   constructor(
     scene: Phaser.Scene,
     gridRow: number,
@@ -57,6 +62,8 @@ export class Player extends Phaser.GameObjects.Image {
     }
 
     this.isMoving = true;
+    this.lastDRow = dRow;
+    this.lastDCol = dCol;
     this.gridRow = newRow;
     this.gridCol = newCol;
 

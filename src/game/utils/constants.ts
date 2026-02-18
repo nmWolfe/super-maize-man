@@ -38,6 +38,7 @@ export const SCENES = {
   LEVEL_COMPLETE: "LevelCompleteScene",
   GAME_OVER: "GameOverScene",
   ENDLESS_MENU: "EndlessMenuScene",
+  BOSS: "BossScene",
 } as const;
 
 // Grid rendering

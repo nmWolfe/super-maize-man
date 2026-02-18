@@ -5,6 +5,7 @@ import { GameScene } from "./scenes/GameScene";
 import { LevelCompleteScene } from "./scenes/LevelCompleteScene";
 import { GameOverScene } from "./scenes/GameOverScene";
 import { EndlessMenuScene } from "./scenes/EndlessMenuScene";
+import { BossScene } from "./scenes/BossScene";
 import { COLORS } from "./utils/constants";
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
@@ -19,5 +20,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     width: 480,
     height: 480,
   },
-  scene: [BootScene, MenuScene, EndlessMenuScene, GameScene, LevelCompleteScene, GameOverScene],
+  scene: [BootScene, MenuScene, EndlessMenuScene, GameScene, BossScene, LevelCompleteScene, GameOverScene],
 };

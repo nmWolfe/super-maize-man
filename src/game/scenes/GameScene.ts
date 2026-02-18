@@ -186,7 +186,7 @@ export class GameScene extends Phaser.Scene {
         case "right": this.player.tryMove(0, 1);  break;
       }
     });
-    if (window.innerWidth > 1200) this.dpad.setVisible(false);
+    if (!('ontouchstart' in window) && navigator.maxTouchPoints === 0) this.dpad.setVisible(false);
 
     // Timer
     this.timerEvent = this.time.addEvent({
@@ -373,9 +373,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleWin() {
-    this.soundManager.gameOverWin();
+    this.soundManager.levelComplete();
     this.time.delayedCall(300, () => {
-      this.scene.start(SCENES.GAME_OVER, { won: true });
+      // After the final story level, route to the Big Keith boss fight
+      if (!this.proceduralLevel && this.levelIndex >= levels.length - 1) {
+        this.scene.start(SCENES.BOSS);
+      } else {
+        this.soundManager.gameOverWin();
+        this.scene.start(SCENES.GAME_OVER, { won: true });
+      }
     });
   }
 
