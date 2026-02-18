@@ -5,6 +5,8 @@ import { Player } from "../objects/Player";
 import { Corn } from "../objects/Corn";
 import { DPad } from "../ui/DPad";
 import { SoundManager } from "../audio/SoundManager";
+import { Enemy } from "../objects/Enemy";
+import { FogOfWar } from "../ui/FogOfWar";
 
 const MOVE_REPEAT_DELAY = 120; // ms between moves when holding a key
 
@@ -25,6 +27,8 @@ export class GameScene extends Phaser.Scene {
   private lastMoveTime: number = 0;
   private effectiveTileSize: number = 0;
   private soundManager!: SoundManager;
+  private enemies: Enemy[] = [];
+  private fog?: FogOfWar;
 
   constructor() {
     super(SCENES.GAME);
@@ -34,6 +38,7 @@ export class GameScene extends Phaser.Scene {
     this.levelIndex = data.levelIndex ?? 0;
     this.totalCorn = data.totalCorn ?? 0;
     this.corns = [];
+    this.enemies = [];
     this.lastMoveTime = 0;
   }
 
@@ -69,13 +74,14 @@ export class GameScene extends Phaser.Scene {
 
         // Floor tile — scale from base TILE_SIZE to effective size
         const floor = this.add.image(x, y, "floor-tile");
-        floor.setScale(this.effectiveTileSize / TILE_SIZE);
+        floor.setScale(this.effectiveTileSize / TILE_SIZE).setDepth(0);
 
         if (tileType === TILE.WALL) {
           const wall = this.add.image(x, y, "wall-tile");
-          wall.setScale(this.effectiveTileSize / TILE_SIZE);
+          wall.setScale(this.effectiveTileSize / TILE_SIZE).setDepth(0);
         } else if (tileType === TILE.CORN) {
           const corn = new Corn(this, row, col, this.gridOffsetX, this.gridOffsetY, this.effectiveTileSize);
+          corn.setDepth(10);
           this.corns.push(corn);
         }
       }
@@ -116,9 +122,44 @@ export class GameScene extends Phaser.Scene {
       ease: "Sine.easeInOut",
     });
 
-    // Listen for player movement to check corn collection
+    // Spawn enemies if the level defines them (depth 20, sits below fog at 100)
+    if (level.enemies) {
+      for (const spawn of level.enemies) {
+        const enemy = new Enemy(this, spawn, this.gridOffsetX, this.gridOffsetY, this.effectiveTileSize);
+        this.enemies.push(enemy);
+        enemy.on("moved", () => this.checkEnemyCollision());
+      }
+    }
+
+    // Set player above fog (depth 101)
+    this.player.setDepth(101);
+
+    // Fog of war overlay (depth 100 — covers corn, enemies, walls)
+    if (level.fogOfWar?.enabled) {
+      this.fog = new FogOfWar(
+        this,
+        gridSize,
+        this.gridOffsetX,
+        this.gridOffsetY,
+        this.effectiveTileSize,
+        level.fogOfWar.revealRadius
+      );
+      this.fog.update(this.player.gridRow, this.player.gridCol);
+    }
+
+    // Listen for player movement to check corn collection, enemy collision, and proximity
     this.player.on("moved", () => {
       this.checkCornCollection();
+      this.checkEnemyCollision();
+      this.fog?.update(this.player.gridRow, this.player.gridCol);
+      this.checkEnemyProximity();
+    });
+
+    // Cleanup on scene shutdown
+    this.events.on("shutdown", () => {
+      this.enemies.forEach(e => e.stopPatrol());
+      this.fog?.destroy();
+      this.fog = undefined;
     });
 
     // Keyboard input
@@ -196,6 +237,38 @@ export class GameScene extends Phaser.Scene {
         break;
       }
     }
+  }
+
+  private checkEnemyProximity() {
+    if (this.enemies.length === 0) return;
+    const minDist = this.enemies.reduce((best, enemy) => {
+      const d = Math.max(
+        Math.abs(enemy.gridRow - this.player.gridRow),
+        Math.abs(enemy.gridCol - this.player.gridCol)
+      );
+      return Math.min(best, d);
+    }, Infinity);
+    if (minDist <= 2) {
+      this.soundManager.enemyNearby();
+    }
+  }
+
+  private checkEnemyCollision() {
+    for (const enemy of this.enemies) {
+      if (enemy.gridRow === this.player.gridRow && enemy.gridCol === this.player.gridCol) {
+        this.handleEnemyCaught();
+        return;
+      }
+    }
+  }
+
+  private handleEnemyCaught() {
+    this.timerEvent.remove();
+    this.enemies.forEach(e => e.stopPatrol());
+    this.soundManager.gameOverLose();
+    this.time.delayedCall(350, () => {
+      this.scene.start(SCENES.GAME_OVER, { won: false });
+    });
   }
 
   private advanceLevel() {

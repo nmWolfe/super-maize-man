@@ -10,6 +10,8 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "game-canvas",
   backgroundColor: COLORS.BACKGROUND,
+  antialias: true,
+  roundPixels: false,
   scale: {
     mode: Phaser.Scale.RESIZE,
     parent: "game-canvas",

@@ -85,4 +85,17 @@ export class SoundManager {
     this.playNote(784, now + 0.3, 0.15, "sine", 0.25);   // G5
     this.playNote(1047, now + 0.45, 0.25, "sine", 0.3);  // C6
   }
+
+  // Spooky heartbeat played when an enemy is close.
+  // Two low thumps in quick succession — a classic horror "lub-dub".
+  enemyNearby() {
+    const ctx = this.getContext();
+    const now = ctx.currentTime;
+    // First thump
+    this.playNote(55, now, 0.12, "sine", 0.35);       // low A1 — deep thud
+    this.playNote(80, now, 0.08, "triangle", 0.2);    // slight overtone
+    // Second thump (slightly softer)
+    this.playNote(50, now + 0.15, 0.1, "sine", 0.25);
+    this.playNote(75, now + 0.15, 0.07, "triangle", 0.15);
+  }
 }

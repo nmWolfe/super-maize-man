@@ -68,6 +68,15 @@ export const levels: LevelData[] = [
     timeLimit: 20,
     playerStart: [0, 0],
     cornToAdvance: 18,
+    enemies: [
+      {
+        // Patrols row 4, cols 0–4 (all floor tiles)
+        start: [4, 4],
+        patrol: [[4, 0], [4, 1], [4, 2], [4, 3], [4, 4]],
+        speed: 550,
+      },
+    ],
+    fogOfWar: { enabled: true, revealRadius: 3 },
   },
   {
     name: "Level 4",
@@ -85,5 +94,20 @@ export const levels: LevelData[] = [
     timeLimit: 25,
     playerStart: [0, 0],
     cornToAdvance: 27,
+    enemies: [
+      {
+        // Patrols row 2, cols 0–4 (all floor / corn tiles)
+        start: [2, 0],
+        patrol: [[2, 0], [2, 1], [2, 2], [2, 3], [2, 4]],
+        speed: 480,
+      },
+      {
+        // Patrols row 5, cols 4–7 (all floor tiles)
+        start: [5, 7],
+        patrol: [[5, 4], [5, 5], [5, 6], [5, 7]],
+        speed: 420,
+      },
+    ],
+    fogOfWar: { enabled: true, revealRadius: 2 },
   },
 ];
