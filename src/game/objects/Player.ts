@@ -8,7 +8,12 @@ export class Player extends Phaser.GameObjects.Image {
   private offsetX: number;
   private offsetY: number;
   private levelGrid: number[][];
-  private tileSize: number;
+  tileSize: number;
+
+  // Power-up state (public so GameScene can set them)
+  isConfused: boolean = false;
+  isSlideLocked: boolean = false;
+  speedMultiplier: number = 1; // 0.5 = 2× speed (halves tween duration)
 
   constructor(
     scene: Phaser.Scene,
@@ -30,7 +35,6 @@ export class Player extends Phaser.GameObjects.Image {
     this.levelGrid = levelGrid;
     this.tileSize = tileSize;
 
-    // Scale sprite to fit tile
     const spriteScale = (tileSize * 0.7) / this.width;
     this.setScale(spriteScale);
 
@@ -38,7 +42,7 @@ export class Player extends Phaser.GameObjects.Image {
   }
 
   tryMove(dRow: number, dCol: number): boolean {
-    if (this.isMoving) return false;
+    if (this.isMoving || this.isSlideLocked) return false;
 
     const newRow = this.gridRow + dRow;
     const newCol = this.gridCol + dCol;
@@ -65,7 +69,7 @@ export class Player extends Phaser.GameObjects.Image {
       targets: this,
       x: targetX,
       y: targetY,
-      duration: 80,
+      duration: Math.round(80 * this.speedMultiplier),
       ease: "Power2",
       onComplete: () => {
         this.isMoving = false;
@@ -74,4 +78,16 @@ export class Player extends Phaser.GameObjects.Image {
 
     return true;
   }
+
+  // Used by ice slide to snap between tiles during the tween sequence
+  snapToGrid(row: number, col: number) {
+    this.gridRow = row;
+    this.gridCol = col;
+    this.x = this.offsetX + col * this.tileSize + this.tileSize / 2;
+    this.y = this.offsetY + row * this.tileSize + this.tileSize / 2;
+  }
+
+  get offsetXVal() { return this.offsetX; }
+  get offsetYVal() { return this.offsetY; }
+  get grid() { return this.levelGrid; }
 }

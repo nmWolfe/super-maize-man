@@ -47,6 +47,13 @@ export class BootScene extends Phaser.Scene {
     floorGfx.generateTexture("floor-tile", ts, ts);
     floorGfx.destroy();
 
+    // Corn burst particle — small yellow dot
+    const kernelGfx = this.add.graphics();
+    kernelGfx.fillStyle(COLORS.PRIMARY, 1);
+    kernelGfx.fillCircle(4, 4, 4);
+    kernelGfx.generateTexture("kernel", 8, 8);
+    kernelGfx.destroy();
+
     // Generate farmer enemy texture — neon silhouette style
     const g = this.add.graphics();
 
@@ -115,6 +122,65 @@ export class BootScene extends Phaser.Scene {
     g.generateTexture("enemy", ts, ts);
     g.destroy();
 
+    // Power-up corn textures — glowing neon circles with symbols
+    this.makePowerUpTexture(ts, 3, 0x00aaff, "freeze"); // Freeze — ice blue
+    this.makePowerUpTexture(ts, 4, 0xffcc00, "speed");  // Speed  — gold
+    this.makePowerUpTexture(ts, 5, 0xddeeff, "ice");    // Ice    — pale blue
+    this.makePowerUpTexture(ts, 6, 0xaa44ff, "confuse");// Confusion — purple
+
     this.scene.start(SCENES.MENU);
+  }
+
+  private makePowerUpTexture(ts: number, tileType: number, color: number, symbol: "freeze" | "speed" | "ice" | "confuse") {
+    const key = `powerup-${tileType}`;
+    const cx = ts / 2;
+    const cy = ts / 2;
+    const r = ts * 0.33;
+
+    const p = this.add.graphics();
+    // Outer glow
+    p.fillStyle(color, 0.2);
+    p.fillCircle(cx, cy, r + 5);
+    // Main body
+    p.fillStyle(color, 0.85);
+    p.fillCircle(cx, cy, r);
+    // Neon rim
+    p.lineStyle(2, color, 1);
+    p.strokeCircle(cx, cy, r);
+
+    // Symbol drawn in dark contrasting colour
+    p.lineStyle(2, 0x111111, 0.9);
+
+    if (symbol === "freeze") {
+      // Snowflake: 3 crossing lines through centre
+      for (let angle = 0; angle < 180; angle += 60) {
+        const rad = (angle * Math.PI) / 180;
+        p.lineBetween(
+          cx + Math.cos(rad) * r * 0.65, cy + Math.sin(rad) * r * 0.65,
+          cx - Math.cos(rad) * r * 0.65, cy - Math.sin(rad) * r * 0.65
+        );
+      }
+    } else if (symbol === "speed") {
+      // Lightning bolt (two diagonal lines)
+      p.lineBetween(cx - 4, cy - r * 0.55, cx + 2, cy + 2);
+      p.lineBetween(cx - 2, cy - 2, cx + 4, cy + r * 0.55);
+      p.lineBetween(cx - 4, cy - r * 0.55, cx + 4, cy + r * 0.55);
+    } else if (symbol === "ice") {
+      // Arrow pointing right (slide direction)
+      p.lineBetween(cx - r * 0.5, cy, cx + r * 0.5, cy);
+      p.lineBetween(cx + r * 0.25, cy - r * 0.3, cx + r * 0.5, cy);
+      p.lineBetween(cx + r * 0.25, cy + r * 0.3, cx + r * 0.5, cy);
+    } else if (symbol === "confuse") {
+      // Question mark using two segments
+      p.lineBetween(cx - r * 0.2, cy - r * 0.45, cx + r * 0.2, cy - r * 0.45);
+      p.lineBetween(cx + r * 0.2, cy - r * 0.45, cx + r * 0.2, cy);
+      p.lineBetween(cx + r * 0.2, cy, cx, cy + r * 0.15);
+      // dot
+      p.fillStyle(0x111111, 0.9);
+      p.fillCircle(cx, cy + r * 0.42, 2.5);
+    }
+
+    p.generateTexture(key, ts, ts);
+    p.destroy();
   }
 }

@@ -1,7 +1,12 @@
 import Phaser from "phaser";
 import { SCENES } from "../utils/constants";
 
+type Mode = "story" | "endless";
+
 export class MenuScene extends Phaser.Scene {
+  private selectedMode: Mode = "story";
+  private modeLabels!: { story: Phaser.GameObjects.Text; endless: Phaser.GameObjects.Text };
+
   constructor() {
     super(SCENES.MENU);
   }
@@ -16,28 +21,58 @@ export class MenuScene extends Phaser.Scene {
       'Well, I agree.\n' +
       'But this isn\'t about me, it\'s about you!\n' +
       'You are a Corn person who loves gathering corn.\n' +
-      'Your task is to collect all the delicious corns\n' +
-      'before the timer runs out.\n' +
-      'If the timer runs out, goodbye my sweet friend,\n' +
-      'I\'ll see you in the theatres.';
+      'Collect all the delicious corns before the timer runs out.\n' +
+      'Watch out for Gerald.';
 
-    this.add.text(centerX, centerY - 40, rulesText, {
+    this.add.text(centerX, centerY - 80, rulesText, {
       fontFamily: '"Josefin Sans", Tahoma',
-      fontSize: "14px",
+      fontSize: "13px",
       color: "#ffffff",
       align: "center",
-      lineSpacing: 6,
+      lineSpacing: 5,
       wordWrap: { width: this.scale.width - 40 },
     }).setOrigin(0.5);
 
-    const startText = this.add.text(centerX, centerY + 120, "Press Enter or tap to start", {
+    // Mode selector
+    this.add.text(centerX, centerY + 30, "Mode:", {
+      fontFamily: '"Josefin Sans", Tahoma',
+      fontSize: "12px",
+      color: "#888888",
+      align: "center",
+    }).setOrigin(0.5);
+
+    const storyLabel = this.add.text(centerX - 60, centerY + 55, "Story", {
       fontFamily: "Pacifico, Tahoma",
-      fontSize: "16px",
+      fontSize: "18px",
       color: "#ffea00",
       align: "center",
     }).setOrigin(0.5);
 
-    // Pulsing animation on start prompt
+    const endlessLabel = this.add.text(centerX + 60, centerY + 55, "Endless", {
+      fontFamily: "Pacifico, Tahoma",
+      fontSize: "18px",
+      color: "#555555",
+      align: "center",
+    }).setOrigin(0.5);
+
+    this.modeLabels = { story: storyLabel, endless: endlessLabel };
+    this.updateModeDisplay();
+
+    // Arrow hint
+    this.add.text(centerX, centerY + 80, "◄  ►  to switch", {
+      fontFamily: '"Josefin Sans", Tahoma',
+      fontSize: "10px",
+      color: "#555555",
+      align: "center",
+    }).setOrigin(0.5);
+
+    const startText = this.add.text(centerX, centerY + 110, "Press Enter or tap to start", {
+      fontFamily: "Pacifico, Tahoma",
+      fontSize: "15px",
+      color: "#ffea00",
+      align: "center",
+    }).setOrigin(0.5);
+
     this.tweens.add({
       targets: startText,
       alpha: 0.4,
@@ -46,20 +81,38 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Start on Enter key
     if (this.input.keyboard) {
-      this.input.keyboard.once("keydown-ENTER", () => {
-        this.startGame();
-      });
+      this.input.keyboard.on("keydown-LEFT",  () => this.switchMode("story"));
+      this.input.keyboard.on("keydown-RIGHT", () => this.switchMode("endless"));
+      this.input.keyboard.on("keydown-A",     () => this.switchMode("story"));
+      this.input.keyboard.on("keydown-D",     () => this.switchMode("endless"));
+      this.input.keyboard.once("keydown-ENTER", () => this.startSelected());
     }
 
-    // Start on any pointer tap
-    this.input.once("pointerdown", () => {
-      this.startGame();
-    });
+    this.input.once("pointerdown", () => this.startSelected());
+
+    // Tap on labels
+    storyLabel.setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => { this.switchMode("story"); this.startSelected(); });
+    endlessLabel.setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => { this.switchMode("endless"); this.startSelected(); });
   }
 
-  private startGame() {
-    this.scene.start(SCENES.GAME, { levelIndex: 0, totalCorn: 0 });
+  private switchMode(mode: Mode) {
+    this.selectedMode = mode;
+    this.updateModeDisplay();
+  }
+
+  private updateModeDisplay() {
+    this.modeLabels.story.setColor(this.selectedMode === "story" ? "#ffea00" : "#444444");
+    this.modeLabels.endless.setColor(this.selectedMode === "endless" ? "#ffea00" : "#444444");
+  }
+
+  private startSelected() {
+    if (this.selectedMode === "endless") {
+      this.scene.start(SCENES.ENDLESS_MENU);
+    } else {
+      this.scene.start(SCENES.GAME, { levelIndex: 0, totalCorn: 0 });
+    }
   }
 }

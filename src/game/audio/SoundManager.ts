@@ -86,6 +86,41 @@ export class SoundManager {
     this.playNote(1047, now + 0.45, 0.25, "sine", 0.3);  // C6
   }
 
+  // --- Power-up sounds ---
+  powerUpFreeze() {
+    // Descending glassy arpeggio
+    const ctx = this.getContext();
+    const now = ctx.currentTime;
+    this.playNote(800, now, 0.08, "sine", 0.2);
+    this.playNote(600, now + 0.08, 0.08, "sine", 0.2);
+    this.playNote(400, now + 0.16, 0.12, "sine", 0.2);
+  }
+
+  powerUpSpeed() {
+    // Fast ascending blip
+    this.playTone(400, 0.06, "square", 0.15, 800);
+  }
+
+  powerUpIce() {
+    // Wobbly downward slide
+    this.playTone(600, 0.4, "sine", 0.2, 200);
+  }
+
+  powerUpConfusion() {
+    // Dissonant tritone (two tones simultaneously)
+    const ctx = this.getContext();
+    this.playNote(440, ctx.currentTime, 0.2, "sine", 0.15);
+    this.playNote(622, ctx.currentTime, 0.2, "sine", 0.15);
+  }
+
+  farmerAlert() {
+    // Sharp two-tone alarm
+    const ctx = this.getContext();
+    const now = ctx.currentTime;
+    this.playNote(880, now, 0.1, "square", 0.18);
+    this.playNote(660, now + 0.12, 0.1, "square", 0.18);
+  }
+
   // Spooky heartbeat played when an enemy is close.
   // Two low thumps in quick succession — a classic horror "lub-dub".
   enemyNearby() {

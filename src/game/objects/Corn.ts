@@ -1,8 +1,10 @@
 import Phaser from "phaser";
+import { TILE } from "../utils/constants";
 
 export class Corn extends Phaser.GameObjects.Image {
   gridRow: number;
   gridCol: number;
+  tileType: number;
 
   constructor(
     scene: Phaser.Scene,
@@ -10,16 +12,18 @@ export class Corn extends Phaser.GameObjects.Image {
     gridCol: number,
     offsetX: number,
     offsetY: number,
-    tileSize: number
+    tileSize: number,
+    tileType: number = TILE.CORN
   ) {
     const x = offsetX + gridCol * tileSize + tileSize / 2;
     const y = offsetY + gridRow * tileSize + tileSize / 2;
-    super(scene, x, y, "corn");
+    const textureKey = tileType === TILE.CORN ? "corn" : `powerup-${tileType}`;
+    super(scene, x, y, textureKey);
 
     this.gridRow = gridRow;
     this.gridCol = gridCol;
+    this.tileType = tileType;
 
-    // Scale sprite to fit tile
     const spriteScale = (tileSize * 0.7) / this.width;
     this.setScale(spriteScale);
 
